@@ -30,12 +30,12 @@ npm install
 
 3. **Set up the database:**
     - Make sure you have a running SQL server.
-    - Run the ```bash sql/database-setup.sql``` script to create the necessary tables.
+    - Run the ```sql/database-setup.sql``` script to create the necessary tables.
 
 4. **Set up environment variables:**
-    - Copy the ```bash env.examples``` file to a new file named ```bash env```.
-    - Open the ```bash env``` file and fill in your database credentials.
-    - Don't forget to change the database password in ```bash server.js```.
+    - Copy the ```env.examples``` file to a new file named ```env```.
+    - Open the ```env``` file and fill in your database credentials.
+    - Don't forget to change the database password in ```server.js```.
 
 ## Usage
 
@@ -44,4 +44,4 @@ To start the server, run the following command:
 node server/server.js
 ```
 
-The application should run at ```bash http://localhost:3000```.
+The application should run at ```http://localhost:3000```.
