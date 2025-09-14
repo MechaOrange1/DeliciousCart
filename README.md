@@ -23,7 +23,7 @@ This is a mockup web-based application primarily focused for mobile usage but it
 
 ## Final Product Video Demo
 
-[![Video Demo Thumbnail](./images/thumbnail.png)(https://youtu.be/VG8ZHl2GESc)]
+[![Video Demo Thumbnail](./images/thumbnail.png)](https://youtu.be/VG8ZHl2GESc)
 
 ## Setup & Installation
 
