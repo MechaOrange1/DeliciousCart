@@ -7,12 +7,23 @@ This is a mockup web-based application primarily focused for mobile usage but it
 - **Recipe Discovery:** Browse a collection of user-made recipes with instructions.
 - **Direct Purchasing:** Select the ingredients you want to buy for a specific recipe to a shopping cart with a simple checkbox.
 - **Responsive Design:** A clean interface optimized for both mobile and desktop screens.
+- **Role-Based Access:** The application supports different user roles (e.g., Regular User vs. Administrator) with unique views and permissions.
 
 ## Tech Stack
 
 - **Backend:** Node.js, Express.js
 - **Frontend:** HTML, CSS, JavaScript
 - **Database:** MySQL
+
+## Figma Design Prototype
+
+| Regular User View | Restaurant View | Admin View |
+| :---------------: | :-------------: | :--------: |
+| ![Figma User View](./images/home.png) | ![Figma Restaurant View](./images/restaurant.png) | ![Figma Admin View](./images/admin.png) |
+
+## Final Product Video Demo
+
+[![Video Demo Thumbnail](./images/thumbnail.png)(https://youtu.be/VG8ZHl2GESc)]
 
 ## Setup & Installation
 
