@@ -1,0 +1,318 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Home</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700&display=swap" rel="stylesheet">
+    <style>
+        body { font-family: 'Inter', sans-serif; background-color: #FFF7ED; }
+        .recipe-card-grid { grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); }
+        .view { display: none; }
+        .view.active { display: block; }
+        .star-rating svg { cursor: pointer; }
+    </style>
+</head>
+<body>
+
+    <div class="max-w-md mx-auto p-6 min-h-screen">
+        
+        <!-- View: Main Recipe Lists -->
+        <div id="mainView" class="view active">
+            <header class="flex justify-between items-center mb-8">
+                <div><h1 class="text-3xl font-bold text-black">Home</h1></div>
+                <div class="relative">
+                    <button id="profileButton" class="flex items-center space-x-2"><span id="homeUsername" class="font-semibold text-gray-700"></span><div class="w-10 h-10 bg-gray-200 rounded-full flex items-center justify-center"><svg class="w-6 h-6 text-gray-500" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z" clip-rule="evenodd"></path></svg></div></button>
+                    <div id="profileDropdown" class="hidden absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg z-20 p-2"><a href="#" id="trackOrderBtn" class="block px-3 py-2 text-sm text-gray-700 hover:bg-gray-100 rounded-md">Track Order</a><div class="border-t my-1"></div><a href="#" id="logoutButton" class="block px-3 py-2 text-sm text-red-600 hover:bg-red-50 rounded-md">Logout</a></div>
+                </div>
+            </header>
+            <div class="mb-6"><input type="text" id="searchInput" placeholder="Search for recipes" class="w-full px-4 py-3 bg-white rounded-lg"></div>
+            <div class="mb-8">
+                <div class="flex justify-between items-center mb-3"><h2 class="text-2xl font-bold text-black">Popular Recipes</h2><a href="#" class="text-sm text-gray-600">See more &rarr;</a></div>
+                <div id="popularRecipes" class="grid grid-cols-2 gap-4"></div>
+            </div>
+            <div>
+                <h2 class="text-2xl font-bold text-black mb-3">Recommendations</h2>
+                <div id="recommendations" class="grid recipe-card-grid gap-4"></div>
+            </div>
+        </div>
+
+        <!-- View: Recipe Detail -->
+        <div id="detailView" class="view">
+            <header class="flex items-center mb-4"><button class="back-btn p-2 rounded-full"><svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M15 19l-7-7 7-7"></path></svg></button><h1 class="text-2xl font-bold">Recipe Detail</h1></header>
+            <div id="recipeDetailContent" class="bg-white rounded-lg shadow-lg"><img id="detailImage" class="w-full h-48 object-cover"><div class="p-6"><h2 id="detailName" class="text-3xl font-bold"></h2><div class="flex justify-between my-4"><div class="flex space-x-4"><span id="detailServes"></span><span id="detailPrepTime"></span></div><div class="flex items-center"><svg class="w-5 h-5 text-yellow-400" fill="currentColor" viewBox="0 0 20 20"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"></path></svg><span id="detailRating" class="font-bold"></span></div></div><p id="detailCuisine" class="mb-6"></p><div class="border-t pt-4 mb-6"><h3 class="font-bold">Ingredients</h3><ul id="detailIngredients"></ul></div><div class="border-t pt-4"><h3 class="font-bold">Steps</h3><ol id="detailSteps"></ol></div><div class="mt-8 space-y-4"><button id="leaveReviewBtn" class="w-full bg-blue-500 text-white font-bold py-3 rounded-lg">Leave a Review</button><button id="orderIngredientsBtn" class="w-full bg-green-500 text-white font-bold py-3 rounded-lg">Order Ingredients</button></div></div></div>
+        </div>
+        
+        <!-- View: Select Ingredients -->
+        <div id="selectIngredientsView" class="view">
+            <header class="flex items-center mb-4"><button class="back-btn p-2 rounded-full"><svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M15 19l-7-7 7-7"></path></svg></button><h1 class="text-2xl font-bold">Select Ingredients</h1></header>
+            <div id="ingredientsList" class="space-y-3 mb-6"></div>
+            <button id="proceedToCheckoutBtn" class="w-full bg-orange-500 text-white font-bold py-3 rounded-lg">Proceed to Checkout</button>
+        </div>
+
+        <!-- View: Checkout -->
+        <div id="checkoutView" class="view">
+            <header class="flex items-center mb-4"><button class="back-btn p-2 rounded-full"><svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M15 19l-7-7 7-7"></path></svg></button><h1 class="text-2xl font-bold">Checkout</h1></header>
+            <div id="checkoutSummary" class="bg-white p-6 rounded-lg shadow-md mb-6"><div id="checkoutItems"></div><div class="border-t mt-4 pt-4 flex justify-between font-bold text-lg"><p>Total:</p><p id="checkoutTotal"></p></div></div>
+            <button id="placeOrderBtn" class="w-full bg-green-500 text-white font-bold py-3 rounded-lg">Place Order</button>
+        </div>
+
+        <!-- View: Track Order -->
+        <div id="trackOrderView" class="view">
+             <header class="flex items-center mb-4"><button class="back-btn p-2 rounded-full"><svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M15 19l-7-7 7-7"></path></svg></button><h1 class="text-2xl font-bold">Track Order</h1></header>
+             <div id="orderHistoryList" class="space-y-4"></div>
+        </div>
+
+        <!-- View: Leave Review -->
+        <div id="reviewView" class="view">
+            <header class="flex items-center mb-4"><button class="back-btn p-2 rounded-full"><svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M15 19l-7-7 7-7"></path></svg></button><h1 class="text-2xl font-bold">Leave Review</h1></header>
+            <div class="bg-white p-6 rounded-lg shadow-md">
+                <div class="flex justify-center star-rating mb-4" data-rating="0">
+                    <svg data-value="1" class="w-10 h-10 text-gray-300" fill="currentColor" viewBox="0 0 20 20"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"></path></svg>
+                    <svg data-value="2" class="w-10 h-10 text-gray-300" fill="currentColor" viewBox="0 0 20 20"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"></path></svg>
+                    <svg data-value="3" class="w-10 h-10 text-gray-300" fill="currentColor" viewBox="0 0 20 20"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"></path></svg>
+                    <svg data-value="4" class="w-10 h-10 text-gray-300" fill="currentColor" viewBox="0 0 20 20"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"></path></svg>
+                    <svg data-value="5" class="w-10 h-10 text-gray-300" fill="currentColor" viewBox="0 0 20 20"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"></path></svg>
+                </div>
+                <textarea id="reviewComment" class="w-full h-32 p-2 border rounded-md" placeholder="Any thoughts?"></textarea>
+                <button id="submitReviewBtn" class="w-full mt-4 bg-orange-500 text-white font-bold py-3 rounded-lg">Submit</button>
+            </div>
+        </div>
+
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const views = document.querySelectorAll('.view');
+            let currentRecipe = null;
+            let allRecipes = [];
+            let viewHistory = ['mainView'];
+            const currentUser = JSON.parse(localStorage.getItem('currentUser'));
+
+            // --- Initial Setup & Auth ---
+            if (currentUser) {
+                document.getElementById('homeUsername').textContent = currentUser.username;
+            }
+            document.getElementById('profileButton').addEventListener('click', () => document.getElementById('profileDropdown').classList.toggle('hidden'));
+            document.getElementById('logoutButton').addEventListener('click', () => {
+                localStorage.removeItem('currentUser');
+                window.location.href = 'login.html';
+            });
+            document.querySelectorAll('.back-btn').forEach(btn => btn.addEventListener('click', goBack));
+            document.getElementById('trackOrderBtn').addEventListener('click', displayOrderHistory);
+            document.getElementById('orderIngredientsBtn').addEventListener('click', () => showView('selectIngredientsView', { pushState: true, needsPopulate: true }));
+            document.getElementById('proceedToCheckoutBtn').addEventListener('click', () => showView('checkoutView', { pushState: true, needsPopulate: true }));
+            document.getElementById('placeOrderBtn').addEventListener('click', placeOrder);
+            document.getElementById('leaveReviewBtn').addEventListener('click', () => showView('reviewView', { pushState: true, needsPopulate: true }));
+            document.getElementById('submitReviewBtn').addEventListener('click', submitReview);
+            
+            // --- Star Rating Logic ---
+            const stars = document.querySelectorAll('.star-rating svg');
+            stars.forEach(star => {
+                star.addEventListener('mouseover', handleStarHover);
+                star.addEventListener('mouseout', handleStarMouseout);
+                star.addEventListener('click', handleStarClick);
+            });
+
+            function handleStarHover(e) {
+                const hoverValue = e.currentTarget.dataset.value;
+                stars.forEach(s => {
+                    s.classList.toggle('text-yellow-400', s.dataset.value <= hoverValue);
+                    s.classList.toggle('text-gray-300', s.dataset.value > hoverValue);
+                });
+            }
+
+            function handleStarMouseout() {
+                const ratingContainer = document.querySelector('.star-rating');
+                const selectedValue = ratingContainer.dataset.rating;
+                stars.forEach(s => {
+                    s.classList.toggle('text-yellow-400', s.dataset.value <= selectedValue);
+                    s.classList.toggle('text-gray-300', s.dataset.value > selectedValue);
+                });
+            }
+            
+            function handleStarClick(e) {
+                const ratingContainer = document.querySelector('.star-rating');
+                const selectedValue = e.currentTarget.dataset.value;
+                ratingContainer.dataset.rating = selectedValue;
+                handleStarMouseout(); // Apply the click state permanently
+            }
+
+            // --- View Management ---
+            function showView(viewId, options = {}) {
+                const { recipeId = null, pushState = false, needsPopulate = false } = options;
+                if (pushState) viewHistory.push(viewId);
+                views.forEach(v => v.classList.remove('active'));
+                document.getElementById(viewId).classList.add('active');
+                window.scrollTo(0, 0);
+                if (recipeId) currentRecipe = allRecipes.find(r => r.id === recipeId);
+                if (needsPopulate) {
+                    if (viewId === 'detailView') populateDetailView();
+                    if (viewId === 'selectIngredientsView') populateSelectIngredients();
+                    if (viewId === 'checkoutView') populateCheckout();
+                    if (viewId === 'reviewView') populateReviewView();
+                }
+            }
+            
+            function goBack() {
+                if (viewHistory.length > 1) {
+                    viewHistory.pop();
+                    const previousViewId = viewHistory[viewHistory.length - 1];
+                    showView(previousViewId);
+                }
+            }
+
+            // --- API Calls & Logic ---
+            async function fetchRecipes() {
+                try {
+                    const res = await fetch('http://localhost:3000/api/recipes');
+                    const data = await res.json();
+                    allRecipes = [...data.popular, ...data.recommended];
+                    const popularDiv = document.getElementById('popularRecipes');
+                    const recsDiv = document.getElementById('recommendations');
+                    popularDiv.innerHTML = data.popular.map(r => createRecipeCard(r)).join('');
+                    recsDiv.innerHTML = data.recommended.map(r => createRecipeCard(r)).join('');
+                    document.querySelectorAll('.view-recipe-btn').forEach(btn => {
+                        btn.addEventListener('click', (e) => showView('detailView', {
+                            recipeId: parseInt(e.currentTarget.dataset.id),
+                            pushState: true,
+                            needsPopulate: true
+                        }));
+                    });
+                } catch (err) { console.error("Failed to fetch recipes", err); }
+            }
+
+            function createRecipeCard(recipe) {
+                return `<div class="cursor-pointer view-recipe-btn" data-id="${recipe.id}"><img src="${recipe.image_url || 'https://placehold.co/400x300'}" class="w-full h-32 object-cover rounded-lg mb-2"><h3>${recipe.name}</h3></div>`;
+            }
+
+            function populateDetailView() {
+                if(!currentRecipe) return;
+                document.getElementById('detailName').textContent = currentRecipe.name;
+                document.getElementById('detailImage').src = currentRecipe.image_url || 'https://placehold.co/600x400';
+                document.getElementById('detailServes').textContent = `Serves: ${currentRecipe.serving_size || 'N/A'}`;
+                document.getElementById('detailPrepTime').textContent = `Time: ${currentRecipe.prep_time ? currentRecipe.prep_time + ' mins' : 'N/A'}`;
+                document.getElementById('detailCuisine').textContent = `Cuisine: ${currentRecipe.cuisine_type || 'N/A'}`;
+                document.getElementById('detailRating').textContent = `${parseFloat(currentRecipe.avg_rating).toFixed(1)} / 5`;
+                document.getElementById('detailIngredients').innerHTML = currentRecipe.ingredients.split('\n').map(i => `<li>${i}</li>`).join('');
+                document.getElementById('detailSteps').innerHTML = currentRecipe.steps.split('\n').map(i => `<li>${i}</li>`).join('');
+            }
+            
+            function populateSelectIngredients() {
+                const ingredients = currentRecipe.ingredients.split('\n').filter(i => i.trim() !== '');
+                const listDiv = document.getElementById('ingredientsList');
+                listDiv.innerHTML = '';
+                const ingredientData = ingredients.map(ing => ({ name: ing, price: (Math.random() * (10 - 1) + 1).toFixed(2) }));
+                ingredientData.forEach(ing => {
+                    listDiv.innerHTML += `<div class="flex justify-between items-center bg-white p-3 rounded-lg"><div><p class="font-bold">${ing.name}</p><p class="text-sm text-gray-500">$${ing.price}</p></div><input type="checkbox" class="ingredient-checkbox h-5 w-5" data-name="${ing.name}" data-price="${ing.price}" checked></div>`;
+                });
+            }
+
+            function populateCheckout() {
+                const selectedItems = [];
+                document.querySelectorAll('.ingredient-checkbox:checked').forEach(cb => {
+                    selectedItems.push({ name: cb.dataset.name, price: parseFloat(cb.dataset.price) });
+                });
+                const itemsDiv = document.getElementById('checkoutItems');
+                itemsDiv.innerHTML = selectedItems.map(item => `<div class="flex justify-between"><p>${item.name}</p><p>$${item.price.toFixed(2)}</p></div>`).join('');
+                const total = selectedItems.reduce((sum, item) => sum + item.price, 0);
+                document.getElementById('checkoutTotal').textContent = `$${total.toFixed(2)}`;
+            }
+            
+            function populateReviewView() {
+                // Reset the form when opening it
+                document.querySelector('.star-rating').dataset.rating = "0";
+                document.getElementById('reviewComment').value = '';
+                handleStarMouseout();
+            }
+
+            async function placeOrder() {
+                if (!currentUser) {
+                    alert("Please log in to place an order.");
+                    return;
+                }
+                const selectedItems = [];
+                document.querySelectorAll('.ingredient-checkbox:checked').forEach(cb => {
+                    selectedItems.push({ name: cb.dataset.name, price: parseFloat(cb.dataset.price) });
+                });
+                const total = selectedItems.reduce((sum, item) => sum + item.price, 0);
+
+                try {
+                    const res = await fetch('http://localhost:3000/api/orders', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                            user_id: currentUser.id,
+                            recipe_name: currentRecipe.name,
+                            total_cost: total,
+                            items: selectedItems
+                        })
+                    });
+                    if(!res.ok) throw new Error("Order failed");
+                    alert("Order placed successfully!");
+                    viewHistory = ['mainView'];
+                    showView('mainView');
+                } catch (err) { console.error("Order failed", err); alert("Failed to place order."); }
+            }
+            
+            async function submitReview() {
+                if (!currentUser) { alert("Please log in to leave a review."); return; }
+                const rating = document.querySelector('.star-rating').dataset.rating;
+                if (rating === "0") {
+                    alert("Please select a star rating.");
+                    return;
+                }
+                const comment = document.getElementById('reviewComment').value;
+                try {
+                    const res = await fetch('http://localhost:3000/api/reviews', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                            user_id: currentUser.id,
+                            recipe_id: currentRecipe.id,
+                            rating: parseInt(rating, 10),
+                            comment: comment
+                        })
+                    });
+                    if (!res.ok) throw new Error("Failed to submit review");
+                    alert("Thank you for your review!");
+                    await fetchRecipes(); // Refresh all recipe data to get new average
+                    goBack(); // Go back to the recipe detail page
+                    populateDetailView(); // Re-populate the detail view to show the new rating
+                } catch(err) {
+                    console.error("Failed to submit review", err);
+                    alert("There was an error submitting your review.");
+                }
+            }
+
+            async function displayOrderHistory() {
+                 if (!currentUser) { alert("Please log in to see your order history."); return; }
+                 showView('trackOrderView', { pushState: true }); 
+                 const listDiv = document.getElementById('orderHistoryList');
+                 listDiv.innerHTML = '<p class="text-center text-gray-500">Loading orders...</p>';
+                 try {
+                    const res = await fetch(`http://localhost:3000/api/orders/${currentUser.id}`);
+                    if (!res.ok) throw new Error(`Server responded with ${res.status}`);
+                    const orders = await res.json();
+                    listDiv.innerHTML = '';
+                    if (!orders || orders.length === 0) {
+                        listDiv.innerHTML = '<p class="text-center text-gray-500">No past orders found.</p>';
+                    } else {
+                         orders.forEach(order => {
+                            const itemsHtml = Array.isArray(order.items) ? order.items.map(i => `<li>${i.ingredient_name}</li>`).join('') : '<li>Could not load items.</li>';
+                            listDiv.innerHTML += `<div class="bg-white p-4 rounded-lg shadow"><div class="flex justify-between font-bold"><p>Order #${order.id} - ${order.recipe_name}</p><p>$${parseFloat(order.total_cost).toFixed(2)}</p></div><div class="text-sm text-gray-600"><p>Status: ${order.order_status}</p><p>ETA: ${order.estimated_arrival}</p></div><details class="mt-2"><summary class="cursor-pointer text-sm text-blue-500">View Items</summary><ul class="list-disc pl-5 mt-2 text-sm">${itemsHtml}</ul></details></div>`;
+                        });
+                    }
+                 } catch(err) { 
+                     console.error("Failed to display order history", err);
+                     listDiv.innerHTML = `<p class="text-center text-red-500">Could not load order history.</p>`;
+                 }
+            }
+
+            // --- Initial Load ---
+            fetchRecipes();
+        });
+    </script>
+</body>
+</html>

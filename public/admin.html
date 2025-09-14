@@ -1,0 +1,304 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Dashboard</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+        /* Simple transition for dropdown */
+        .dropdown-menu {
+            transition: opacity 0.2s ease-out, transform 0.2s ease-out;
+        }
+    </style>
+</head>
+<body class="bg-[#FFF7ED]">
+
+    <!-- Main Content Container -->
+    <div class="max-w-md mx-auto p-6 min-h-screen">
+        
+        <!-- Header with Profile -->
+        <header class="flex justify-between items-center mb-8">
+            <div>
+                <h1 class="text-3xl font-bold text-black">Manage Data</h1>
+            </div>
+            <div class="relative">
+                <button id="profileButton" class="flex items-center space-x-2 cursor-pointer">
+                    <span id="adminUsername" class="font-semibold text-right text-gray-700"></span>
+                    <!-- Simple SVG for profile icon -->
+                    <div class="w-10 h-10 bg-gray-200 rounded-full flex items-center justify-center">
+                        <svg class="w-6 h-6 text-gray-500" fill="currentColor" viewBox="0 0 20 20">
+                            <path fill-rule="evenodd" d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z" clip-rule="evenodd"></path>
+                        </svg>
+                    </div>
+                </button>
+                <!-- Profile Dropdown -->
+                <div id="profileDropdown" class="dropdown-menu hidden absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg z-20 p-2 transform scale-95 opacity-0">
+                    <a href="#" id="logoutButton" class="block px-3 py-2 text-sm text-red-600 hover:bg-red-50 rounded-md">Logout</a>
+                </div>
+            </div>
+        </header>
+
+        <div class="mb-6">
+            <input type="text" id="searchInput" placeholder="Search for users / restaurants"
+                   class="w-full px-4 py-3 bg-white rounded-lg text-gray-500 focus:outline-none focus:ring-2 focus:ring-orange-400">
+        </div>
+
+        <!-- Users List -->
+        <div id="usersSection">
+            <h2 class="text-2xl font-bold text-black border-b-2 border-black pb-1 mb-3">Users</h2>
+            <div id="usersList" class="space-y-1">
+                <!-- User data will be dynamically inserted here -->
+            </div>
+        </div>
+
+        <!-- Restaurants List -->
+        <div id="restaurantsSection" class="mt-8">
+            <h2 class="text-2xl font-bold text-black border-b-2 border-black pb-1 mb-3">Restaurant</h2>
+            <div id="restaurantsList" class="space-y-1">
+                <!-- Restaurant data will be dynamically inserted here -->
+            </div>
+        </div>
+
+    </div>
+    
+    <!-- Simple Modal for confirmation -->
+    <div id="confirmationModal" class="fixed inset-0 bg-black bg-opacity-50 hidden items-center justify-center z-50">
+        <div class="bg-white p-6 rounded-lg shadow-xl max-w-sm w-full">
+            <p id="modalText" class="text-lg mb-4">Are you sure?</p>
+            <div class="flex justify-end space-x-4">
+                <button id="cancelButton" class="px-4 py-2 bg-gray-300 rounded-lg">Cancel</button>
+                <button id="confirmButton" class="px-4 py-2 bg-red-500 text-white rounded-lg">Confirm</button>
+            </div>
+        </div>
+    </div>
+
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const usersListDiv = document.getElementById('usersList');
+            const restaurantsListDiv = document.getElementById('restaurantsList');
+            const searchInput = document.getElementById('searchInput');
+            const modal = document.getElementById('confirmationModal');
+            const modalText = document.getElementById('modalText');
+            const cancelButton = document.getElementById('cancelButton');
+            const confirmButton = document.getElementById('confirmButton');
+            const adminUsernameSpan = document.getElementById('adminUsername');
+            const profileButton = document.getElementById('profileButton');
+            const profileDropdown = document.getElementById('profileDropdown');
+            const logoutButton = document.getElementById('logoutButton');
+
+            // --- Page Protection & User Info ---
+            const currentUser = JSON.parse(localStorage.getItem('currentUser'));
+
+            if (!currentUser || currentUser.type !== 'admin') {
+                // If not logged in as admin, redirect to login page immediately
+                window.location.href = 'login.html';
+                return; // Stop further execution of the script
+            } else {
+                // Display admin username
+                adminUsernameSpan.textContent = currentUser.username;
+            }
+
+            // --- Logout Logic ---
+            function logout() {
+                localStorage.removeItem('currentUser');
+                window.location.href = 'login.html';
+            }
+
+            logoutButton.addEventListener('click', (e) => {
+                e.preventDefault();
+                logout();
+            });
+
+            // --- Dropdown Toggles ---
+            profileButton.addEventListener('click', (event) => {
+                event.stopPropagation();
+                toggleDropdownMenu(profileDropdown);
+            });
+
+            function toggleDropdownMenu(dropdown) {
+                // Close all other open dropdowns first
+                document.querySelectorAll('.dropdown-menu').forEach(d => {
+                    if (d !== dropdown) {
+                        d.classList.add('hidden', 'scale-95', 'opacity-0');
+                    }
+                });
+
+                // Toggle the target dropdown
+                dropdown.classList.toggle('hidden');
+                setTimeout(() => { // Timeout to allow transition to work
+                    dropdown.classList.toggle('scale-95');
+                    dropdown.classList.toggle('opacity-0');
+                }, 1);
+            }
+
+            // --- Fetch all users from the backend ---
+            async function fetchUsers() {
+                try {
+                    const response = await fetch('http://localhost:3000/admin/users');
+                    if (!response.ok) throw new Error('Failed to fetch users.');
+                    allUsers = await response.json();
+                    renderLists(allUsers);
+                } catch (error) {
+                    console.error('Error fetching users:', error);
+                    usersListDiv.innerHTML = `<p class="text-red-500">Could not load user data.</p>`;
+                }
+            }
+
+            // --- Render the lists based on user data ---
+            function renderLists(users) {
+                usersListDiv.innerHTML = '';
+                restaurantsListDiv.innerHTML = '';
+                const userAccounts = users.filter(u => u.account_type === 'user');
+                const restaurantAccounts = users.filter(u => u.account_type === 'restaurant');
+                userAccounts.forEach(user => usersListDiv.innerHTML += createUserRow(user));
+                restaurantAccounts.forEach(user => restaurantsListDiv.innerHTML += createRestaurantRow(user));
+                if (userAccounts.length === 0) usersListDiv.innerHTML = '<p class="text-gray-500">No standard users found.</p>';
+                if (restaurantAccounts.length === 0) restaurantsListDiv.innerHTML = '<p class="text-gray-500">No restaurant accounts found.</p>';
+                attachEventListeners();
+            }
+            
+            // --- HTML template for a user row with dropdown ---
+            function createUserRow(user) {
+                const isSuspended = user.account_status === 'suspended';
+                return `
+                    <div class="relative" data-username="${user.username.toLowerCase()}">
+                        <div class="flex justify-between items-center py-2 px-2 border-b border-gray-300 bg-white rounded-md shadow-sm">
+                            <span class="font-semibold ${isSuspended ? 'text-gray-400 line-through' : ''}">${user.username}</span>
+                            <button data-action="toggle-item-dropdown" data-target="dropdown-${user.id}" class="text-gray-500 text-sm hover:text-black">Manage User &rarr;</button>
+                        </div>
+                        <div id="dropdown-${user.id}" class="dropdown-menu hidden absolute right-0 mt-1 w-48 bg-white rounded-md shadow-lg z-10 p-2 transform scale-95 opacity-0">
+                            <a href="#" data-action="restaurant" data-id="${user.id}" class="block px-3 py-2 text-sm text-gray-700 hover:bg-gray-100 rounded-md">Make Restaurant</a>
+                            <a href="#" data-action="${isSuspended ? 'unsuspend' : 'suspend'}" data-id="${user.id}" class="block px-3 py-2 text-sm text-gray-700 hover:bg-gray-100 rounded-md">${isSuspended ? 'Unsuspend' : 'Suspend'}</a>
+                            <div class="border-t my-1"></div>
+                            <a href="#" data-action="delete" data-id="${user.id}" class="block px-3 py-2 text-sm text-red-600 hover:bg-red-50 rounded-md">Delete</a>
+                        </div>
+                    </div>`;
+            }
+
+            // --- HTML template for a restaurant row with dropdown ---
+            function createRestaurantRow(user) {
+                const isSuspended = user.account_status === 'suspended';
+                 return `
+                    <div class="relative" data-username="${user.username.toLowerCase()}">
+                         <div class="flex justify-between items-center py-2 px-2 border-b border-gray-300 bg-white rounded-md shadow-sm">
+                            <span class="font-semibold ${isSuspended ? 'text-gray-400 line-through' : ''}">${user.username}</span>
+                            <button data-action="toggle-item-dropdown" data-target="dropdown-${user.id}" class="text-gray-500 text-sm hover:text-black">Manage Restaurant &rarr;</button>
+                        </div>
+                        <div id="dropdown-${user.id}" class="dropdown-menu hidden absolute right-0 mt-1 w-48 bg-white rounded-md shadow-lg z-10 p-2 transform scale-95 opacity-0">
+                           <a href="#" data-action="${isSuspended ? 'unsuspend' : 'suspend'}" data-id="${user.id}" class="block px-3 py-2 text-sm text-gray-700 hover:bg-gray-100 rounded-md">${isSuspended ? 'Unsuspend' : 'Suspend'}</a>
+                           <div class="border-t my-1"></div>
+                           <a href="#" data-action="delete" data-id="${user.id}" class="block px-3 py-2 text-sm text-red-600 hover:bg-red-50 rounded-md">Delete</a>
+                        </div>
+                    </div>`;
+            }
+
+            // --- Attach listeners to all management buttons ---
+            function attachEventListeners() {
+                 document.querySelectorAll('[data-action="toggle-item-dropdown"]').forEach(button => {
+                    button.addEventListener('click', (event) => {
+                        event.stopPropagation();
+                        const dropdown = document.getElementById(event.target.dataset.target);
+                        toggleDropdownMenu(dropdown);
+                    });
+                });
+                document.querySelectorAll('.dropdown-menu a').forEach(link => {
+                    if (link.id !== 'logoutButton') {
+                       link.addEventListener('click', handleManagementAction);
+                    }
+                });
+            }
+            
+            // --- Close dropdowns when clicking outside ---
+            window.addEventListener('click', () => {
+                document.querySelectorAll('.dropdown-menu').forEach(d => {
+                    if (!d.classList.contains('hidden')) {
+                        d.classList.add('hidden', 'scale-95', 'opacity-0');
+                    }
+                });
+            });
+
+            // --- Handle clicks on any management button ---
+            function handleManagementAction(event) {
+                event.preventDefault();
+                const action = event.target.dataset.action;
+                const id = event.target.dataset.id;
+                let confirmText, onConfirm;
+                switch (action) {
+                    case 'delete':
+                        confirmText = 'Are you sure you want to delete this user permanently?';
+                        onConfirm = () => deleteUser(id);
+                        break;
+                    case 'suspend':
+                        confirmText = 'Are you sure you want to suspend this user?';
+                        onConfirm = () => updateUserStatus(id, 'suspended');
+                        break;
+                    case 'unsuspend':
+                        confirmText = 'Are you sure you want to reactivate this user?';
+                        onConfirm = () => updateUserStatus(id, 'active');
+                        break;
+                    case 'restaurant':
+                        confirmText = 'Are you sure you want to change this account to a restaurant type?';
+                        onConfirm = () => updateUserType(id, 'restaurant');
+                        break;
+                }
+                showModal(confirmText, onConfirm);
+            }
+
+            function showModal(text, confirmCallback) {
+                modalText.textContent = text;
+                modal.classList.remove('hidden');
+                modal.classList.add('flex');
+                confirmButton.onclick = () => {
+                    confirmCallback();
+                    hideModal();
+                };
+                cancelButton.onclick = hideModal;
+            }
+
+            function hideModal() {
+                modal.classList.add('hidden');
+                modal.classList.remove('flex');
+            }
+
+            // --- API call functions ---
+            async function performFetch(url, method, body) {
+                try {
+                    const response = await fetch(url, {
+                        method: method,
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(body)
+                    });
+                    if (!response.ok) throw new Error('API request failed');
+                    fetchUsers();
+                } catch (error) {
+                    console.error(`Error on ${method} ${url}:`, error);
+                    alert('Action failed. See console for details.');
+                }
+            }
+
+            function deleteUser(id) { performFetch(`http://localhost:3000/admin/users/${id}`, 'DELETE'); }
+            function updateUserStatus(id, status) { performFetch(`http://localhost:3000/admin/users/${id}/status`, 'PUT', { status }); }
+            function updateUserType(id, type) { performFetch(`http://localhost:3000/admin/users/${id}/type`, 'PUT', { type }); }
+
+            // --- Search functionality ---
+            searchInput.addEventListener('input', (e) => {
+                const searchTerm = e.target.value.toLowerCase();
+                const filteredUsers = allUsers.filter(user => 
+                    user.username.toLowerCase().includes(searchTerm) || 
+                    user.email.toLowerCase().includes(searchTerm)
+                );
+                renderLists(filteredUsers);
+            });
+
+            // --- Initial Load ---
+            fetchUsers();
+        });
+    </script>
+</body>
+</html>
